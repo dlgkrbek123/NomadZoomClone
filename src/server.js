@@ -11,5 +11,8 @@ app.set('views', __dirname + '/views');
 
 // 라우트
 app.get('/', (req, res) => res.render('home'));
+app.get('/*', (req, res) => res.redirect('/'));
 
-app.listen(3000);
+app.listen(3000, () => {
+  console.log('Listening on 3000');
+});
