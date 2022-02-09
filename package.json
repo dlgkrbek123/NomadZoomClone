@@ -1,0 +1,31 @@
+{
+  "name": "NomadZoomClone",
+  "version": "1.0.0",
+  "description": "노마드코더 줌 클론코딩",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon"
+  },
+  "repository": {
+    "type": "g it",
+    "url": "git+https://github.com/dlgkrbek123/NomadZoomClone.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dlgkrbek123/NomadZoomClone/issues"
+  },
+  "homepage": "https://github.com/dlgkrbek123/NomadZoomClone#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.17.0",
+    "@babel/core": "^7.17.2",
+    "@babel/node": "^7.16.8",
+    "@babel/preset-env": "^7.16.11",
+    "nodemon": "^2.0.15"
+  },
+  "dependencies": {
+    "express": "^4.17.2",
+    "pug": "^3.0.2"
+  }
+}
