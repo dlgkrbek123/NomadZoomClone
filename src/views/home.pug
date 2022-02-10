@@ -10,6 +10,12 @@ html(lang="en")
         header
             h1 Noom
         main
-            h2 Welcome to Noom
+            ul
+            form#nickname
+                input(type="text", placeholder="choose a nickname")
+                button Save
+            form#message
+                input(type="text", placeholder="write message")
+                button send
         script(src="/public/js/app.js")
         

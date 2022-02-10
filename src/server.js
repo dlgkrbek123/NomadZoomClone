@@ -18,21 +18,38 @@ app.get('/*', (req, res) => res.redirect('/'));
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 /* 
-http, 웹소켓 서버 통합
-- http 서버 생성 후
-- 그 위에 웹소켓 서버를 생성
+  http, 웹소켓 서버 통합
+  - http 서버 생성 후 => 그 위에 웹소켓 서버를 생성
 */
 
+const sockets = [];
+
 wss.on('connection', (socket) => {
-  // socket은 연결 라인
+  socket.nickname = '익명';
+  sockets.push(socket);
+
   socket.on('close', () => {
-    console.log('연결끊김');
-  });
-  socket.on('message', (message) => {
-    console.log(message.toString('utf8'));
+    const index = sockets.findIndex((item) => item === socket);
+
+    if (index !== -1) {
+      sockets.splice(index, 1);
+    }
   });
 
-  socket.send('hello');
+  socket.on('message', (message) => {
+    const { type, payload } = JSON.parse(message.toString('utf8'));
+
+    switch (type) {
+      case 'nickname':
+        socket.nickname = payload;
+        break;
+      case 'new_message':
+        sockets.forEach((socketItem) =>
+          socketItem.send(`${socket.nickname}: ${payload}`)
+        );
+        break;
+    }
+  });
 });
 
 server.listen(3000, () => {
