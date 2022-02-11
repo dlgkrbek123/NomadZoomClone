@@ -21,17 +21,16 @@ const wsServer = SocketIO(httpServer);
 
 // 소켓 서버 튜닝
 wsServer.on('connection', (socket) => {
-  socket.nickname = '익명';
-
   socket.on('disconnecting', () => {
     socket.rooms.forEach((room) => {
       socket.to(room).emit('bye', socket.nickname);
     });
   });
 
-  socket.on('enter_room', ({ payload }, done) => {
-    socket.join(payload);
-    socket.to(payload).emit('welcome', socket.nickname);
+  socket.on('enter_room', (roomName, nickname, done) => {
+    socket.nickname = nickname;
+    socket.join(roomName);
+    socket.to(roomName).emit('welcome', nickname);
     done();
   });
 

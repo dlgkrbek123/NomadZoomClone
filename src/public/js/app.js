@@ -2,8 +2,8 @@ const socket = io();
 
 const welocome = document.querySelector('#welcome');
 const room = document.querySelector('#room');
-const form = welcome.querySelector('form');
-const nickForm = room.querySelector('form#nickname');
+
+const entranceForm = welcome.querySelector('form#entrance');
 const msgForm = room.querySelector('form#msg');
 
 room.hidden = true;
@@ -16,26 +16,32 @@ const addMessage = (message) => {
   ul.appendChild(li);
 };
 
-form.addEventListener('submit', (e) => {
+entranceForm.addEventListener('submit', (e) => {
   e.preventDefault();
-  const input = form.querySelector('input');
-  const roomName = input.value;
 
-  socket.emit('enter_room', { payload: roomName }, () => {
+  const roomNameInput = entranceForm.querySelector('input[name=roomname]');
+  const nickNameInput = entranceForm.querySelector('input[name=nickname]');
+
+  const roomName = roomNameInput.value;
+  const nickname = nickNameInput.value;
+
+  socket.emit('enter_room', roomName, nickname, () => {
     const h3 = document.createElement('h3');
 
+    roomNameInput.value = '';
+    nickNameInput.value = '';
     h3.innerText = `Room ${roomName}`;
     welcome.hidden = true;
     room.hidden = false;
     room.prepend(h3);
 
-    nickForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const input = nickForm.querySelector('input');
-      const value = input.value;
+    // nickForm.addEventListener('submit', (e) => {
+    //   e.preventDefault();
+    //   const input = nickForm.querySelector('input');
+    //   const value = input.value;
 
-      socket.emit('nickname', value);
-    });
+    //   socket.emit('nickname', value);
+    // });
 
     msgForm.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -48,7 +54,6 @@ form.addEventListener('submit', (e) => {
       );
     });
   });
-  input.value = '';
 });
 
 socket.onAny((event, ...args) => {
