@@ -1,6 +1,6 @@
 import http from 'http';
 import express from 'express';
-import WebSocket from 'ws';
+import SocketIO from 'socket.io';
 
 const app = express();
 
@@ -15,43 +15,30 @@ app.set('views', __dirname + '/views');
 app.get('/', (req, res) => res.render('home'));
 app.get('/*', (req, res) => res.redirect('/'));
 
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
-/* 
-  http, 웹소켓 서버 통합
-  - http 서버 생성 후 => 그 위에 웹소켓 서버를 생성
-*/
+// 서버 인스턴스 생성
+const httpServer = http.createServer(app);
+const wsServer = SocketIO(httpServer);
 
-const sockets = [];
-
-wss.on('connection', (socket) => {
-  socket.nickname = '익명';
-  sockets.push(socket);
-
-  socket.on('close', () => {
-    const index = sockets.findIndex((item) => item === socket);
-
-    if (index !== -1) {
-      sockets.splice(index, 1);
-    }
+// 소켓 서버 튜닝
+wsServer.on('connection', (socket) => {
+  socket.on('enter_room', ({ payload }, done) => {
+    socket.join(payload);
+    socket.to(payload).emit('welcome');
+    done();
   });
 
-  socket.on('message', (message) => {
-    const { type, payload } = JSON.parse(message.toString('utf8'));
+  socket.on('disconnecting', () => {
+    socket.rooms.forEach((room) => {
+      socket.to(room).emit('bye');
+    });
+  });
 
-    switch (type) {
-      case 'nickname':
-        socket.nickname = payload;
-        break;
-      case 'new_message':
-        sockets.forEach((socketItem) =>
-          socketItem.send(`${socket.nickname}: ${payload}`)
-        );
-        break;
-    }
+  socket.on('new_message', (value, roomName, done) => {
+    socket.to(roomName).emit('new_message', value);
+    done();
   });
 });
 
-server.listen(3000, () => {
+httpServer.listen(3000, () => {
   console.log('Listening on 3000');
 });

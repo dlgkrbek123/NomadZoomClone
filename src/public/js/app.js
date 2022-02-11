@@ -1,41 +1,60 @@
-const socket = new WebSocket(`ws://${location.host}`);
+const socket = io();
 
-const messageList = document.querySelector('ul');
-const nicknameForm = document.querySelector('#nickname');
-const messageForm = document.querySelector('#message');
+const welocome = document.querySelector('#welcome');
+const room = document.querySelector('#room');
+const form = welcome.querySelector('form');
 
-socket.addEventListener('open', () => {
-  // console.log('연결');
-});
-socket.addEventListener('close', () => {
-  // console.log('연결끊김');
-});
+room.hidden = true;
 
-const makeMessage = (type, payload) => {
-  const msg = { type, payload };
-  return JSON.stringify(msg);
+const addMessage = (message) => {
+  const ul = room.querySelector('ul');
+  const li = document.createElement('li');
+
+  li.innerText = message;
+  ul.appendChild(li);
 };
 
-socket.addEventListener('message', (message) => {
-  const li = document.createElement('li');
-  li.innerText = message.data;
-
-  messageList.append(li);
-});
-
-nicknameForm.addEventListener('submit', (e) => {
+form.addEventListener('submit', (e) => {
   e.preventDefault();
+  const input = form.querySelector('input');
+  const roomName = input.value;
 
-  const input = e.target.querySelector('input');
-  socket.send(makeMessage('nickname', input.value));
-});
+  socket.emit('enter_room', { payload: roomName }, () => {
+    const h3 = document.createElement('h3');
+    const form = room.querySelector('form');
 
-messageForm.addEventListener('submit', (e) => {
-  e.preventDefault();
+    welcome.hidden = true;
+    room.hidden = false;
 
-  const input = e.target.querySelector('input');
-  const value = input.value;
+    h3.innerText = `Room ${roomName}`;
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = form.querySelector('input');
+      const value = input.value;
 
+      input.value = '';
+      socket.emit('new_message', value, roomName, () =>
+        addMessage(`You: ${value}`)
+      );
+    });
+
+    room.prepend(h3);
+  });
   input.value = '';
-  socket.send(makeMessage('new_message', value));
+});
+
+socket.onAny((event, ...args) => {
+  console.log(event, args);
+});
+
+socket.on('welcome', () => {
+  addMessage(`누군가 참가했어요.`);
+});
+
+socket.on('bye', () => {
+  addMessage('누군가 나갔다.');
+});
+
+socket.on('new_message', (msg) => {
+  addMessage(`${msg}`);
 });
