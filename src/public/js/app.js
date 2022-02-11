@@ -3,6 +3,8 @@ const socket = io();
 const welocome = document.querySelector('#welcome');
 const room = document.querySelector('#room');
 const form = welcome.querySelector('form');
+const nickForm = room.querySelector('form#nickname');
+const msgForm = room.querySelector('form#msg');
 
 room.hidden = true;
 
@@ -21,15 +23,23 @@ form.addEventListener('submit', (e) => {
 
   socket.emit('enter_room', { payload: roomName }, () => {
     const h3 = document.createElement('h3');
-    const form = room.querySelector('form');
-
-    welcome.hidden = true;
-    room.hidden = false;
 
     h3.innerText = `Room ${roomName}`;
-    form.addEventListener('submit', (e) => {
+    welcome.hidden = true;
+    room.hidden = false;
+    room.prepend(h3);
+
+    nickForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const input = form.querySelector('input');
+      const input = nickForm.querySelector('input');
+      const value = input.value;
+
+      socket.emit('nickname', value);
+    });
+
+    msgForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = msgForm.querySelector('input');
       const value = input.value;
 
       input.value = '';
@@ -37,8 +47,6 @@ form.addEventListener('submit', (e) => {
         addMessage(`You: ${value}`)
       );
     });
-
-    room.prepend(h3);
   });
   input.value = '';
 });
@@ -47,12 +55,12 @@ socket.onAny((event, ...args) => {
   console.log(event, args);
 });
 
-socket.on('welcome', () => {
-  addMessage(`누군가 참가했어요.`);
+socket.on('welcome', (nickname) => {
+  addMessage(`${nickname}님이 참가했어요.`);
 });
 
-socket.on('bye', () => {
-  addMessage('누군가 나갔다.');
+socket.on('bye', (nickname) => {
+  addMessage(`${nickname}님이 떠났습니다.`);
 });
 
 socket.on('new_message', (msg) => {
