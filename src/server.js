@@ -1,6 +1,7 @@
 import http from 'http';
 import express from 'express';
-import SocketIO from 'socket.io';
+import {Server} from 'socket.io';
+import {instrument} from '@socket.io/admin-ui';
 
 const app = express();
 
@@ -17,21 +18,56 @@ app.get('/*', (req, res) => res.redirect('/'));
 
 // 서버 인스턴스 생성
 const httpServer = http.createServer(app);
-const wsServer = SocketIO(httpServer);
+const wsServer = new Server(httpServer, {
+  cors: {
+    origin: ['https://admin.socket.io'],
+    credentials: true,
+  },
+});
+instrument(wsServer, {
+  auth: false,
+});
+// http://localhost:3000/admin으로 접근
+
+// socket helper
+const publicRooms = () => {
+  const {sids, rooms} = wsServer.sockets.adapter;
+  const publicRooms = [];
+
+  rooms.forEach((_, key) => {
+    if (!sids.get(key)) publicRooms.push(key);
+  });
+
+  return publicRooms;
+};
+
+const countRoom = (roomName) => {
+  return wsServer.sockets.adapter.rooms.get(roomName)?.size ?? 0;
+};
 
 // 소켓 서버 튜닝
 wsServer.on('connection', (socket) => {
   socket.on('disconnecting', () => {
     socket.rooms.forEach((room) => {
-      socket.to(room).emit('bye', socket.nickname);
+      let count = countRoom(room) - 1;
+      if (count < 0) count = 0;
+
+      socket.to(room).emit('bye', room, socket.nickname, countRoom(room) - 1);
     });
+  });
+  socket.on('disconnect', () => {
+    wsServer.sockets.emit('room_change', publicRooms());
   });
 
   socket.on('enter_room', (roomName, nickname, done) => {
     socket.nickname = nickname;
     socket.join(roomName);
-    socket.to(roomName).emit('welcome', nickname);
-    done();
+    socket
+      .to(roomName)
+      .emit('welcome', roomName, nickname, countRoom(roomName));
+
+    wsServer.sockets.emit('room_change', publicRooms());
+    done(countRoom(roomName));
   });
 
   socket.on('new_message', (value, roomName, done) => {
