@@ -33,7 +33,7 @@ const getMedia = async (deviceId) => {
   try {
     myStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
-      video: deviceId ? {deviceId} : {facingMode: 'user'},
+      video: deviceId ? { deviceId } : { facingMode: 'user' },
     });
     if (!deviceId) await getCameras();
 
