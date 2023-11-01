@@ -1,7 +1,7 @@
 import http from 'http';
 import express from 'express';
-import {Server} from 'socket.io';
-import {instrument} from '@socket.io/admin-ui';
+import { Server } from 'socket.io';
+import { instrument } from '@socket.io/admin-ui';
 
 const app = express();
 
@@ -31,7 +31,7 @@ instrument(wsServer, {
 
 // socket helper
 const publicRooms = () => {
-  const {sids, rooms} = wsServer.sockets.adapter;
+  const { sids, rooms } = wsServer.sockets.adapter;
   const publicRooms = [];
 
   rooms.forEach((_, key) => {
@@ -59,25 +59,12 @@ wsServer.on('connection', (socket) => {
     wsServer.sockets.emit('room_change', publicRooms());
   });
 
-  socket.on('enter_room', (roomName, nickname, done) => {
-    socket.nickname = nickname;
+  socket.on('join_room', (roomName, done) => {
+    debugger;
+    console.log(roomName);
     socket.join(roomName);
-    socket
-      .to(roomName)
-      .emit('welcome', roomName, nickname, countRoom(roomName));
-
-    wsServer.sockets.emit('room_change', publicRooms());
-    done(countRoom(roomName));
-  });
-
-  socket.on('new_message', (value, roomName, done) => {
-    socket.to(roomName).emit('new_message', `${socket.nickname}: ${value}`);
     done();
   });
-
-  socket.on('nickname', (nickname) => (socket.nickname = nickname));
 });
 
-httpServer.listen(3000, () => {
-  console.log('Listening on 3000');
-});
+httpServer.listen(3000, () => console.log('Listening on 3000'));

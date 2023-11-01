@@ -4,6 +4,12 @@ const muteBtn = document.querySelector('#mute');
 const cameraBtn = document.querySelector('#camera');
 const cameraSelect = document.querySelector('#cameras');
 
+const welcome = document.getElementById('welcome');
+const welcomeForm = welcome.querySelector('form');
+const call = document.getElementById('call');
+
+call.hidden = true;
+
 let myStream;
 let muted = false;
 let cameraOff = false;
@@ -44,7 +50,12 @@ const getMedia = async (deviceId) => {
   }
 };
 
-getMedia();
+const startMedia = () => {
+  alert('sex');
+  welcome.hidden = true;
+  call.hidden = false;
+  getMedia();
+};
 
 muteBtn.addEventListener('click', () => {
   const audioTracks = myStream.getAudioTracks();
@@ -88,4 +99,15 @@ cameraBtn.addEventListener('click', () => {
 
 cameraSelect.addEventListener('change', (e) => {
   getMedia(cameraSelect.value);
+});
+
+welcomeForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const input = welcomeForm.querySelector('input');
+
+  alert(typeof startMedia);
+
+  socket.emit('join_room', input.value, startMedia);
+
+  input.value = '';
 });
