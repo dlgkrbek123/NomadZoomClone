@@ -32,3 +32,61 @@ webRTC
     => 해당 작업 이후 직접 연결됨
 
 ------------------------------------------------------
+
+peer가 연결 구축
+연결을 통해 오디오/비디오 스트림을 전달
+offer와 answer를 사용해서 시그널링
+
+클라이언트는 localDescription과 remoteDescription을 가진다.
+시그널링 이후 양쪽에서 iceCandidate 이벤트를 실행
+  => 인터넷 연결 생성 (프로토콜)
+  => candidate를 서로 교환
+
+
+카메라 전환이 peer stream에 반영해보기
+  카메라를 바꿀때마다 stream을 새로만들었다.
+  => peer에게 새로운 stream을 제공해야함
+  => sender가 peer로 보내진 mediaStream의 track을 제어
+  => sender.replaceTrack
+
+------------------------------------------------------
+
+휴대폰을 위해 stun server가 필요함
+=> https가 아니거나 wifi가 같지 않으면 에러발생
+=> Session Traversal Utilities for NAT
+=> 서버에 요청시 public IP 주소를 찾게 해줌
+=> p2p 통신이라 서로 주소를 찾아야함
+
+
+myPeerConnection = new RTCPeerConnection({
+  iceServers: [
+    {
+      urls: [
+        'stun:stun.l.google.com:19302',
+        'stun:stun1.l.google.com:19302',
+        'stun:stun2.l.google.com:19302',
+        'stun:stun3.l.google.com:19302',
+        'stun:stun4.l.google.com:19302',
+      ],
+    },
+  ],
+});
+
+------------------------------------------------------
+
+data channel
+=> p2p 유저가 모든 종류의 데이터를 주고 받을 수 있는 채널
+=> 이미지, 파일, 텍스트, ....
+=> 웹소켓이 필요없게 된다.
+
+webRTC가 안좋은 케이스가 있다.
+=> peer가 많아지면 별로다  (mesh architecture)
+  => 모든 peer들이 연결되어 느려지게 됨
+  => 하나의 수정으로 인한 패킷이 모든 연결된 peer에 전달되어야 함
+  => 네트워크 부하가 커진다.
+
+  => sfu로 서버를 중앙에 두고 하는게 좋다.
+  => 스트림을 압축시킨다.
+
+
+------------------------------------------------------
